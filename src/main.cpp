@@ -1,8 +1,10 @@
 #include "imgui.h"
 #include "imgui-SFML.h"
 #include <SFML/Graphics.hpp>
-
+#include <cmath>
+#include <algorithm>
 #include <vector>
+#include <iostream>
 #include "../header/guioverlay.h"
 
 int Width = 1280;
@@ -11,6 +13,85 @@ int Height = 720;
 const int NumRows = 14;
 const int NumColumns = 25;
 const float CellSize = 51.1f;
+
+struct City
+{
+    int x;
+    int y;
+};
+
+double calculateDistance(const City& city1, const City& city2)
+{
+    int dx = city2.x - city1.x;
+    int dy = city2.y - city1.y;
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+double calculateTourDistance(const std::vector<City>& tour)
+{
+    double totalDistance = 0.0;
+    for (std::size_t i = 0; i < tour.size() - 1; ++i)
+    {
+        totalDistance += calculateDistance(tour[i], tour[i + 1]);
+    }
+    totalDistance += calculateDistance(tour[tour.size() - 1], tour[0]);
+    return totalDistance;
+}
+
+void drawCities(sf::RenderWindow& window, const std::vector<City>& cities)
+{
+    sf::CircleShape cityShape(5.f);
+    cityShape.setFillColor(sf::Color::Red);
+
+    for (const auto& city : cities)
+    {
+        cityShape.setPosition(city.x, city.y);
+        window.draw(cityShape);
+    }
+}
+
+void drawPath(sf::RenderWindow& window, const std::vector<City>& path)
+{
+    sf::VertexArray lines(sf::LineStrip);
+    lines.setPrimitiveType(sf::LinesStrip);
+    lines.resize(path.size());
+
+    for (std::size_t i = 0; i < path.size(); ++i)
+    {
+        lines[i].position = sf::Vector2f(path[i].x, path[i].y);
+        lines[i].color = sf::Color::Blue;
+    }
+
+    window.draw(lines);
+}
+
+std::vector<City> findShortestPath(const std::vector<City>& cities, sf::RenderWindow& window)
+{
+    std::vector<City> shortestPath;
+    double shortestDistance = std::numeric_limits<double>::max();
+    std::vector<City> currentPath = cities;
+
+    do {
+        double currentDistance = calculateTourDistance(currentPath);
+
+        if (currentDistance < shortestDistance)
+        {
+            shortestDistance = currentDistance;
+            shortestPath = currentPath;
+
+            // Clear window and redraw the current best path
+            window.clear(sf::Color::White);
+            drawCities(window, cities);
+            drawPath(window, shortestPath);
+            window.display();
+        }
+    } while (std::next_permutation(currentPath.begin() + 1, currentPath.end(),
+        [](const City& city1, const City& city2) {
+            return std::less<int>()(city1.x, city2.x);
+        }));
+
+    return shortestPath;
+}
 
 int main()
 {
@@ -46,6 +127,15 @@ int main()
         grid.append(sf::Vertex(sf::Vector2f(NumColumns * CellSize, y), green));
     }
 
+    std::vector<City> cities = {
+      {100, 100},
+      {200, 300},
+      {400, 200},
+      {600, 350},
+      {700, 150}
+    };
+    std::vector<City> shortestPath = findShortestPath(cities, window);
+
     while (window.isOpen())
     {
         sf::Time elapsed = clock.restart(); // get the time elapsed since the last restart and restart the clock
@@ -61,11 +151,9 @@ int main()
 
         ImGui::SFML::Update(window, clock.restart());
 
-        Overlay::ShowSideBar();
-        Overlay::ShowOverlay(&show);
-
         window.clear();
-
+        drawCities(window, cities);
+        drawPath(window, shortestPath);
         // Drawing the background grid
         window.draw(grid);
 
