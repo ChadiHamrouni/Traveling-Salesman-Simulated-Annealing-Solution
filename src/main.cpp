@@ -1,11 +1,8 @@
-#include "imgui.h"
-#include "imgui-SFML.h"
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <algorithm>
 #include <vector>
 #include <iostream>
-#include "../header/guioverlay.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -23,7 +20,6 @@ struct City
     int x;
     int y;
 };
-
 
 double calculateDistance(const City& city1, const City& city2)
 {
@@ -46,23 +42,14 @@ void customSwap(std::vector<City>& cities, int i, int j) {
     std::swap(cities[i], cities[j]);
 }
 
-
 int main()
 {
-   
-
-
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
     sf::RenderWindow window(sf::VideoMode(Width, Height), "SFML IMGUI", sf::Style::Default, settings);
-    window.setFramerateLimit(20);
+    window.setFramerateLimit(60);
     sf::Clock clock;
-
-    ImGui::SFML::Init(window);
-
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     bool show = false;
 
     sf::Color red(235, 69, 95);
@@ -127,12 +114,12 @@ int main()
         sf::Event event;
         while (window.pollEvent(event))
         {
-            ImGui::SFML::ProcessEvent(event);
+           
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
-        ImGui::SFML::Update(window, clock.restart());
+       
 
         window.clear();
       
@@ -140,7 +127,6 @@ int main()
         window.draw(grid);
 
        
-        ImGui::SFML::Render(window);
         int i = distribution(generator);
         int j = distribution(generator);
 
@@ -180,14 +166,11 @@ int main()
             window.draw(lineSegment);
 
         }
-        Overlay::ShowSideBar();
-        Overlay::ShowOverlay(&show);
-        ImGui::SFML::Render(window);
+      
 
         window.display();
 
     }
 
-    ImGui::SFML::Shutdown();
     return 0;
 }
