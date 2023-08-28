@@ -37,7 +37,6 @@ double calcdist(std::vector<City>& points) {
     }
     return sum;
 }
-
 void customSwap(std::vector<City>& cities, int i, int j) {
     std::swap(cities[i], cities[j]);
 }
