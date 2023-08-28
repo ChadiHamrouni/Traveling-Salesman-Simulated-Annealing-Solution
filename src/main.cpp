@@ -93,7 +93,6 @@ int main()
 
     sf::RectangleShape lineSegment;
 
-
     double recordDistance;
     std::vector<City> bestEver;
     double d = calcdist(cities);
