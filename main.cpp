@@ -8,7 +8,7 @@
 #include <ctime>
 #include <random> // Include the random library
 
-int Width = 1280;  
+int Width = 1280;
 int Height = 720;
 
 const int NumRows = 14;
@@ -29,9 +29,9 @@ double calculateDistance(const City& city1, const City& city2)
 }
 
 double calcdist(std::vector<City>& points) {
-   
+
     double sum = 0;
-    for (int i = 0; i < points.size()-1; i++) {
+    for (int i = 0; i < points.size() - 1; i++) {
         double d = calculateDistance(points[i], points[i + 1]);
         sum = sum + d;
     }
@@ -47,7 +47,7 @@ int main()
     settings.antialiasingLevel = 8;
 
     sf::RenderWindow window(sf::VideoMode(Width, Height), "SFML IMGUI", sf::Style::Default, settings);
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(120);
     sf::Clock clock;
     bool show = false;
 
@@ -86,11 +86,10 @@ int main()
         sf::CircleShape circle(10);  // Create a circle with radius 50
         circle.setPosition(cities[i].x - 10, cities[i].y - 10);  // Set position to (100, 100)
         circle.setFillColor(sf::Color::White);  // Set fill color to red
-
         circles.push_back(circle);
 
     }
-
+    int maxIterations = 50000;
     sf::RectangleShape lineSegment;
 
     double recordDistance;
@@ -103,8 +102,7 @@ int main()
     std::mt19937 generator(rd()); // Create the Mersenne Twister generator
     std::uniform_int_distribution<int> distribution(0, cities.size() - 1); // Create a uniform distribution for indices
 
-
-    while (window.isOpen())
+    while (window.isOpen() && maxIterations > 0)
     {
         sf::Time elapsed = clock.restart(); // get the time elapsed since the last restart and restart the clock
         float dt = elapsed.asSeconds();
@@ -112,30 +110,27 @@ int main()
         sf::Event event;
         while (window.pollEvent(event))
         {
-           
+
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
-       
-
         window.clear();
-      
+
         // Drawing the background grid
         window.draw(grid);
 
-       
         int i = distribution(generator);
         int j = distribution(generator);
 
         // Make sure i and j are distinct
         while (i == j) {
             j = distribution(generator);
+            i = distribution(generator);
         }
         customSwap(cities, i, j);
         d = calcdist(cities);
-
-
+   
         if (d < recordDistance) {
             recordDistance = d;
             bestEver = cities;
@@ -144,8 +139,7 @@ int main()
 
         }
 
-
-        for (int i = 0; i < cities.size(); i++ ) {
+        for (int i = 0; i < cities.size(); i++) {
             int nextIndex = (i + 1) % cities.size(); // Calculate the next city's index with wraparound
             lineSegment.setSize(sf::Vector2f(calculateDistance(cities[i], cities[nextIndex]), 1.5f));
             lineSegment.setFillColor(sf::Color::Green);
@@ -164,9 +158,9 @@ int main()
             window.draw(lineSegment);
 
         }
-      
 
         window.display();
+        maxIterations--;
 
     }
 
